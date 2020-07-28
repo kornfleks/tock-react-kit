@@ -21,13 +21,13 @@ export interface ChatProps {
 }
 
 const Chat: (props: ChatProps) => JSX.Element = ({endPoint, referralParameter, timeoutBetweenMessage = 700, widgets = {}}: ChatProps) => {
-  const {messages, quickReplies, loading, sendMessage, sendQuickReply, sendAction, sendReferralParameter}: UseTock = useTock(
+  const {messages, quickReplies, loading, sendMessage, sendQuickReply, sendAction, sendReferralParameter, sseInitPromise}: UseTock = useTock(
     endPoint
   );
   const [displayableMessageCount, setDisplayableMessageCount] = useState(0);
   useEffect(() => {
     if (referralParameter) {
-      sendReferralParameter(referralParameter);
+      sseInitPromise.then(() => sendReferralParameter(referralParameter));
     }
   }, [sendReferralParameter, referralParameter]);
   useEffect(() => {

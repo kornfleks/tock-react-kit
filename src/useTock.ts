@@ -33,7 +33,8 @@ export interface UseTock {
   setQuickReplies: (quickReplies: QuickReply[]) => void;
   sendQuickReply: (label: string, payload?: string) => Promise<void>;
   sendAction: (button: Button) => Promise<void>;
-  sendReferralParameter: (referralParameter: string) => Promise<void>;
+  sendReferralParameter: (referralParameter: string) => void;
+  sseInitPromise: Promise<void>;
 }
 
 
@@ -78,6 +79,7 @@ const useTock: (tockEndPoint: string) => UseTock = (tockEndPoint: string) => {
   };
 
   const handleBotResponse: (botResponse: any) => void = ({ responses }: any) => {
+    console.log(new Date())
     if (Array.isArray(responses) && responses.length > 0) {
       const lastMessage: any = responses[responses.length - 1];
       if (lastMessage.buttons && lastMessage.buttons.length > 0) {
@@ -122,6 +124,9 @@ const useTock: (tockEndPoint: string) => UseTock = (tockEndPoint: string) => {
   const handleBotResponseIfSseDisabled: (botResponse: any) => void = (botResponse: any) => {
     if (!Sse.isEnable()) {
       handleBotResponse(botResponse)
+    } else {
+      // response non sse
+      console.log("Non sse : " + new Date())
     }
   };
 
@@ -159,9 +164,10 @@ const useTock: (tockEndPoint: string) => UseTock = (tockEndPoint: string) => {
       .finally(stopLoading);
   }, []);
 
-  const sendReferralParameter: (referralParameter: string) => Promise<void> = useCallback((referralParameter: string) => {
+  const sendReferralParameter: (referralParameter: string) => void = useCallback((referralParameter: string) => {
+    console.log(new Date())
     startLoading();
-    return fetch(tockEndPoint, {
+    fetch(tockEndPoint, {
       body: JSON.stringify({
         ref: referralParameter,
         userId: userId,
@@ -277,7 +283,7 @@ const useTock: (tockEndPoint: string) => UseTock = (tockEndPoint: string) => {
   );
 
 
-  Sse.init(tockEndPoint, userId, handleBotResponse);
+  const sseInitPromise = Sse.init(tockEndPoint, userId, handleBotResponse);
 
   return {
     messages,
@@ -291,7 +297,8 @@ const useTock: (tockEndPoint: string) => UseTock = (tockEndPoint: string) => {
     setQuickReplies,
     sendQuickReply,
     sendAction,
-    sendReferralParameter
+    sendReferralParameter,
+    sseInitPromise
   };
 };
 
